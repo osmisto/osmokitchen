@@ -592,9 +592,10 @@
       <div class='row'>
         <div class='span3' id='list'>
           <div class='btn-group'>
-            <button class="btn">Проекты</button>
-            <button class="btn btn-create"><i class='icon-plus'/></button>
-            <button class="btn btn-remove"><i class='icon-trash'/></button>
+            <button class="btn btn-small btn-create"><i class='icon-plus'/></button>
+            <button class="btn btn-small btn-up"><i class='icon-up'/></button>
+            <button class="btn btn-small btn-down"><i class='icon-down'/></button>
+            <button class="btn btn-small btn-remove"><i class='icon-trash'/></button>
           </div>
           <div class='spacer'></div>
         </div>
@@ -607,7 +608,7 @@
 
 
     <script id='template-listitem-template' type='text/template'>
-      <li class='<%%= _selected ? "active" : ""%>'>
+      <li class='<%%= _selected ? "active" : ""%> <%%= removed ? "template-removed" : ""%> '>
         <a href="#admin/templates/<%%= id %>" data-template="<%%= id %>"><%%= name %></a>
       </li>
     </script>

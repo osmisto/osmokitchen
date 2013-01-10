@@ -12,6 +12,7 @@ class Template
   property :name, String, :default => 'Template', :presence => true
   property :description, String, :default => ''
   property :category, String, :default => 'Other'
+  property :removed, Boolean, :default => false
 
   property :author_key, String, :index => true
   property :author_nick, String
@@ -25,6 +26,10 @@ class Template
 
   index :unique_name, String do
     self.unique_name
+  end
+
+  index :removed, Integer do
+    self.removed ? 1 : 0
   end
 
   def sanitize_name
@@ -77,7 +82,7 @@ class IdeaTemplate <Template
   property :body, String, :default => 'TODO! change'
   property :short, String, :default => 'TODO! change'
   property :tags, Array, :default => []
-  are_safe :name, :description, :category, :subject, :short, :body, :tags
+  are_safe :name, :description, :category, :subject, :short, :body, :tags, :removed
 
   def sanitize_content
     self.subject = Sanitize.clean(self.subject) if (self.subject_changed?)

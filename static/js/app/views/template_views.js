@@ -35,18 +35,33 @@ App.TemplatesAdmin = Backbone.View.extend({
 		this.$('#list').append(this.list.el);
 	},
 
-	select: function(model) {
+	cleanupCurrent: function() {
+		this.info = undefined;
+		this.edit = undefined;
+		this.current = undefined;
 		this.$('#edit').empty();
 		this.$('#side').empty();
-		this.$('#list .btn-remove').toggleClass('disabled', typeof(model) === 'undefined');
+		this.$('#list .btn-remove')
+			.addClass('disabled')
+			.removeClass('btn-danger');
+	},
 
+	select: function(model) {
+		this.cleanupCurrent();
 		if (typeof(model) === 'undefined') return;
-		if (typeof(model.id) !== 'undefined')
-			Backbone.history.navigate('#admin/templates/' + model.id);
 
-		this.info = new App.TemplateInfo({model: model});
+		if (typeof(model.id) !== 'undefined') {
+			this.$('#list .btn-remove').removeClass('disabled');
+			Backbone.history.navigate('#admin/templates/' + model.id);
+		}
+
+		if (model.get('removed'))
+			this.$('#list .btn-remove').addClass('btn-danger');
+
+		this.current = model;
+		this.info = new App.TemplateInfo({model: this.current});
 		this.$('#side').append(this.info.el);
-		this.edit = new App.TemplateEdit({model: model});
+		this.edit = new App.TemplateEdit({model: this.current});
 		this.$('#edit').html(this.edit.el);
 
 	},
@@ -60,6 +75,17 @@ App.TemplatesAdmin = Backbone.View.extend({
 		this.select(newModel);
 
 		Backbone.history.navigate('#admin/templates/new');
+	},
+
+	remove: function() {
+		var self = this;
+		if (!this.current) return;
+		this.current.save({removed: !this.current.get('removed')}, {
+			success: function() {
+				self.select(self.current);
+			}
+		});
+		return false;
 	}
 
 });
@@ -142,7 +168,7 @@ App.TemplateEdit = Backbone.View.extend({
 	events: {
 		'click .btn-save': 'save',
 		'click .btn-cancel': 'reset',
-		'click .btn-danger': 'remove'
+		'keyup': 'handleHotkey'
 	},
 
 	initialize: function(options) {
@@ -178,10 +204,6 @@ App.TemplateEdit = Backbone.View.extend({
 		return false;
 	},
 
-	remove: function() {
-
-	},
-
 	parseForm: function() {
 		var dict = {};
 		var fields = this.$('form').serializeArray();
@@ -189,6 +211,11 @@ App.TemplateEdit = Backbone.View.extend({
 			dict[elem['name']] = elem['value'];
 		});
 		return dict;
-	}
+	},
 
+	handleHotkey: function(e) {
+		if (e.ctrlKey && e.keyCode == 13) {
+			this.save();
+		}
+	}
 });
