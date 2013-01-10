@@ -1,0 +1,22 @@
+source "http://rubygems.org"
+gem "sinatra", "~>1.3.3"
+gem "sinatra-contrib", "~>1.3.2"
+gem "json", "~>1.7.5"
+gem "sanitize", "~>2.0.3"
+gem "rack", "~>1.4.1"
+gem "rack-cache", "~>1.2"
+gem "riak-client", "~>1.0.0"
+gem "riak-sessions", :git => "git://github.com/seancribbs/riak-sessions.git", :ref => "6b4950dc3d611bd6bb3cc87a9242878513bc9774"
+gem "ripple", :git => "https://github.com/basho/ripple.git", :ref => "4a5018bcd1bfd5d8653ca876e2c689ec3f853e1c"
+
+gem "rspec", "~>2.12.0"
+gem "rspec-core", "~>2.12.1"
+
+gem "pry", "~>0.9.10"
+gem "pry-doc", "~>0.4.4"
+gem "pry-nav", "~>0.2.2"
+gem "pry-stack_explorer", "~>0.4.7"
+
+gem "autotest-standalone", "~>4.5.11"
+gem "rerun", "~>0.7.1"
+gem "rb-inotify", "~>0.8.8"

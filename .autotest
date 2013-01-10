@@ -1,0 +1,15 @@
+
+Autotest.add_hook :initialize do |at|
+  %w{.git}.each do |exception|
+    at.add_exception(exception)
+  end
+
+  at.remove_mapping(/^lib\/.+\.rb$/)
+  at.add_mapping(%r%^models/(.+)\.rb%) do |filename, m|
+    at.files_matching(%r%^spec/(unit|integration)/.*#{m[1]}.*_spec.rb%)
+  end
+
+  at.add_mapping(%r%^spec/unit/.+\_spec.rb$%) {|filename, _| filename}
+  at.add_mapping(%r%^spec/integration/.*\_spec.rb$%) {|filename, _| filename}
+
+end

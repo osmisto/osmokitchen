@@ -1,0 +1,770 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>OsmoKitchen</title>
+    <meta charset='utf-8' />
+    <link href='/3party/bootstrap/css/bootstrap.css' rel='stylesheet' type='text/css' />
+    <link href='/3party/fontello/css/fontello.css' rel='stylesheet' type='text/css' />
+    <link href='/css/app.css' rel='stylesheet' type='text/css' />
+  </head>
+
+  <body>
+
+
+    <!--
+    *******************************
+    * Main base for backbone app
+    *******************************
+    -->
+    <div id='wrap'>
+      <header id='header'>
+        <div class='navbar navbar-fixed-top' id='navbar'></div>
+      </header>
+      <div class='container' id='infobox'></div>
+      <div id='content'></div>
+      <div id='push'></div>
+    </div>
+    <div class='muted' id='footer'>
+      <div class='container'>
+        <div class='row'>
+          <div class='span2 offset10'>
+            © 2012-2013, osmisto<br/>
+            Fork project on Github
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!--
+    **********************
+    * Templates part
+    **********************
+    -->
+    <script id='navbar-template' type='text/tempalate'>
+      <div class='navbar-inner'>
+        <div class='container'>
+          <a class='brand' href='#'><span class="text-info">OSM</span><span class="muted">-o-</span><span class='text-success'>Кухня</span></a>
+          <ul class='nav'>
+            <li id='index-link'>
+              <a href='#'><i class='icon-home'/> Домой</a>
+            </li>
+            <li id='listIdeas-link'>
+              <a href='#ideas'><i class='icon-lamp'/>Идеи</a>
+            </li>
+            <li id='listProjects-link'>
+              <a href='#projects'><i class='icon-money'/> Проекты</a>
+            </li>
+            <%% if (App.me.can('member')) { %>
+              <li id='admin-link', class="dropdown">
+                <a href='#admin' class="dropdown-toggle" data-toggle="dropdown">
+                  <i class='icon-hammer'/>Админка
+                  <b class="caret"/>
+                </a>
+                <ul class="dropdown-menu">
+                  <li id="adminUsers-link"><a href="#admin/users">Пользователи</a></li>
+                  <li id="adminTemplates-link"><a href="#admin/templates">Шаблоны</a></li>
+                </ul>
+              </li>
+            <%% } %>
+          </ul>
+          <form action='#search' class='navbar-search'>
+            <input class='search-query' placeholder='Search' type='text' />
+          </form>
+        </div>
+      </div>
+    </script>
+
+    <script id='navbar-loggedin-template' type='text/template'>
+      <div class='navbar-text pull-right'>
+        Вошли как
+        <span class='dropdown'>
+          <a class='dropdown-toggle' data-toggle='dropdown' href='#'>
+            <%%=nick%>
+          </a>
+          <ul class='dropdown-menu'>
+            <li>
+              <a href="#user/<%%=id%>">Моя страница</a>
+            </li>
+            <li>
+              <a href='#me/options'>Настройки</a>
+            </li>
+            <li class='divider'></li>
+            <li>
+              <a href='#me/updates'>Трекер (12)</a>
+            </li>
+            <li>
+              <a href='#me/ideas'>Мои идеи (12)</a>
+            </li>
+            <li class='divider'></li>
+            <li>
+              <a href='#' id='logout'>Выйти</a>
+            </li>
+          </ul>
+        </span>
+      </div>
+    </script>
+
+    <script id='navbar-loggedout-template' type='text/template'>
+      <ul class='nav pull-right'>
+        <li class='dropdown'>
+          <a class='dropdown-toggle' data-toggle='dropdown' href='#'>
+            <i class='icon-login' />Войти
+            <span class='caret'></span>
+          </a>
+          <div class='dropdown-menu dropdown-form'>
+            <form>
+              <fieldset>
+                <input id='user-nick' />
+                <button class='btn brn-primary clearfix' id='login'>Войти</button>
+              </fieldset>
+            </form>
+          </div>
+        </li>
+      </ul>
+    </script>
+
+    <script id='message-template' type='text/template'>
+      <div class='row'>
+        <div class="alert <%%=cls%>">
+        <div class='button close' data-dismiss='alert'>x</div>
+        <%%=body%>
+        </div>
+      </div>
+    </script>
+
+    <script id='ideas-list-template' type='text/template'>
+      <%%  App.eventsHub.trigger('domchange:title', 'Идеи'); %>
+      <div class='row'>
+        <div class='span10'> <!-- list block -->
+          <div class='filter row'>
+          </div>
+          <div class='row'>
+            <div class='list span10'></div>
+          </div>
+        </div>
+
+        <div class='sidebar span2'>
+          <%% if (App.currentUser.can("member")) { %>
+            <a class='btn btn-primary btn-large' href='#ideas/new'>Добавить</a>
+            <div class='sidebar-separator'></div>
+          <%% } %>
+        </div>
+      </div>
+    </script>
+
+    <script id='tags-filter-template' type='text/template'>
+      <ul class='nav nav-list'>
+        <li class='nav-header'>Теги</li>
+      </ul>
+    </script>
+
+    <script id='tags-filter-item-template' type='text/template'>
+      <li><a href="#" data-tag="<%%= id %>"><span class='tag'><%%= id %></span> &times; <%%=count%></a></li>
+    </script>
+
+    <script id='ideas-filter-template-expanded' type='text/template'>
+      <div class='row <%%= collapsed ? "hide" : ""%>'> <!-- expanded filter -->
+        <div class='span2'>
+          <ul class='nav nav-list'>
+            <li class='nav-header'>Сортировать по</li>
+            <li><a href="#" data-sort='votes'>голосам</a></li>
+            <li><a href="#" data-sort='cache'>рублям</a></li>
+            <li><a href="#" data-sort='readiness'>готовности</a></li>
+            <li><a href="#" data-sort='activity'>активности</a></li>
+            <li><a href="#" data-sort='time'>времени</a></li>
+          </ul>
+        </div>
+        <div class='span2'>
+          <ul class='nav nav-list'>
+            <li class='nav-header'>показать</li>
+            <li><a href="#" data-filter='opened'>открытые</a></li>
+            <li><a href="#" data-filter='closed'>закрытые</a></li>
+          </ul>
+          <ul class='nav nav-list'>
+            <li class="divider"/>
+            <li><a href="#" data-filter='reached_goal'>готовые</a></li>
+            <li><a href="#" data-filter='close_to_goal'>почти готовые</a></li>
+          </ul>
+        </div>
+        <div class='span2'>
+          <ul class='nav nav-list'>
+            <li class='nav-header'>&nbsp;</li>
+            <li><a href="#" data-filter='w_comments'>с отзывами</a></li>
+            <li><a href="#" data-filter='wo_comments'>без отзывов</a></li>
+          </ul>
+          <ul class='nav nav-list'>
+            <li class="divider"/>
+            <li><a href="#" data-filter='w_votes'>с голосами</a></li>
+            <li><a href="#" data-filter='wo_votes'>без голосов</a></li>
+          </ul>
+        </div>
+        <div class='span2'>
+        </div>
+        <div class='span2 hide'>
+          <ul class='nav nav-list'>
+            <li class='nav-header'>На странице</li>
+            <li><a href="#" data-perpage='10'>10 идей</a></li>
+            <li><a href="#" data-perpage='25'>25 идей</a></li>
+            <li><a href="#" data-perpage='50'>50 идей</a></li>
+          </ul>
+        </div>
+      </div>
+    </script>
+
+    <script id='ideas-filter-template-collapsed' type='text/template'>
+      <div class="row"> <!-- collapsed filter -->
+        <div class="span10">
+          <i class='icon-filter' />Фильтр: <b><%%=filtersSummary%></b> идеи, отсортированные по <b><%%=sortSummary%></b>
+          <a href="#ideas" class='toggle <%%= collapsed ? "":"hide" %>'>(развернуть)</a>
+          <a href="#ideas" class='toggle <%%= collapsed ? "hide":"" %>'>(свернуть)</a>
+        </div>
+      </div>
+    </script>
+
+    <script id='idea-template' type='text/template'>
+      <div class='span10'>
+        <div class='row'>
+          <div class='span1 text-center'>
+            <h3 class="no-margin-bottom"><%%=votes%></h3>
+            <div class='small muted'>голосов</div>
+          </div>
+          <div class='span1 text-center'>
+          <h3 class="no-margin-bottom" title="<%%=cache%>"><%%=short_cache%></h3>
+            <div class='small muted'>из <span title="<%%=goal%>"><%%=short_goal%></div>
+          </div>
+          <div class='span8'>
+            <h4 class='subject'><a href="#ideas/<%%=id%>"><%%=subject%></a></h4>
+            <p><%%=short%></p>
+            <%%=tag_labels.join(", ")%>
+          </div>
+        </div>
+
+        <div class='row'>
+          <div class='span2 text-center'>
+          </div>
+          <div class='span8'>
+            <div class='pull-right'>
+              <div class='muted'>
+                автор: <a href="#user/<%%=author_key%>"><%%=author_nick%></a>
+                <div class='body-links-divider'></div>
+                <a href="#ideas/<%%=id%>#comments"><i class="icon icon-chat"/> <%%=comments%> отзывов</a>
+              </div>
+            </div>
+            <div>
+              <a href='#'><i class='icon-eye-off muted'></i>  следить</a>
+              <%% if(App.currentUser.can('member')) { %>
+                <div class='body-links-divider'></div>
+                <%% if(cuVoted) { %>
+                  <a href="#" class="edit-vote-link <%%=cuVoteCache > 0 ? 'vote-good' : ''%>">+<%%=cuVoteCache%>р.</a>
+                <%% } else { %>
+                  <a href="#" class="new-vote-link">поддержать</a>
+                <%% } %>
+              <%% } %>
+              <%% if(App.currentUser.can("admin", author_key)) { %>
+                <div class='body-links-divider'></div>
+                <a href="#ideas/<%%=id%>/edit"><i class="icon-edit" /> изменить</a>
+              <%% } %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </script>
+
+
+    <script id='idea-view-template' type='text/template'>
+      <%%  App.eventsHub.trigger('domchange:title', subject + ' - Идеи'); %>
+      <div class='row'>
+        <div class='span10'>
+          <div class='row'>
+            <div class="span2">
+              <div class='row'>
+                <div class='span1 text-center'>
+                  <h3 class="no-margin-bottom"><%%=votes%></h3>
+                  <div class='small muted'>голосов</div>
+                </div>
+                <div class='span1 text-center'>
+                <h3 class="no-margin-bottom" title="<%%=cache%>"><%%=short_cache%></h3>
+                  <div class='small muted'>из <span title="<%%=goal%>"><%%=short_goal%></div>
+                </div>
+              </div>
+            </div>
+            <div class='span8 row-subject row-tags row-body'>
+            </div>
+          </div>
+          <div class="spacer"/>
+
+          <%% if (App.currentUser.can('admin', author_key)) { %>
+          <div class='row row-short'>
+            <div class="span2">
+              <h4 class='text-right'>Резюме</h4>
+            </div>
+          </div>
+          <div class="spacer"/>
+          <%% } %>
+
+          <div class='row row-goal'>
+            <div class="span2">
+              <h4 class='text-right'>Цель</h4>
+            </div>
+          </div>
+          <div class="spacer"/>
+
+
+          <div class='row row-comments'>
+            <div class='span10'>
+              <ul class='nav nav-tabs'>
+                <li><a href="#comments" data-toggle="tab"><i class="icon-chat" /> Отзывы (<%%=comments%>)</a></li>
+                <li class="active">
+                  <a href="#votes" data-toggle="tab"><i class="icon-money" /> Голоса (+<%%=votes%>, +<%%=short_cache%>)</a>
+                </li>
+              </ul>
+              <div class="tab-content">
+                <div class="tab-pane" id="comments">1</div>
+                <div class="tab-pane active" id="votes">2</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class='span2 sidebar'>
+        </div>
+      </div>
+    </script>
+
+    <script id='idea-inline-subject-template' type='text/template'>
+      <div class="block-subject <%%=App.me.can('admin', author_key) ? 'edit-block':'view-block'%>">
+        <div class='edit'>
+          <div class='btn-side btn-side-vertical'>
+            <a href="#" class='action-cancel' title="Cancel (Esc)"><i class='icon-cancel-2'/></a>
+            <a href="#" class='action-save' title="Save (Ctrl-Enter)"><i class='icon-floppy-1'/></a>
+          </div>
+          <input class='input span8' value="<%%=subject%>"></input>
+        </div>
+        <div class='view'>
+          <div class='btn-side'>
+            <a href="#" class='action-edit' title="Edit subject (doubleclick)"><i class='icon-pencil'/></a>
+          </div>
+            <h1><%%=subject%></h1>
+          </div>
+        </div>
+      </div>
+    </script>
+
+    <script id='idea-inline-body-template' type='text/template'>
+      <div class="block-body <%%=App.me.can('admin', author_key) ? 'edit-block':'view-block'%>">
+        <div class='edit'>
+          <div class='btn-side btn-side-vertical'>
+            <a href="#" class='action-cancel' title="Cancel (Esc)"><i class='icon-cancel-1'/></a>
+            <a href="#" class='action-save' title="Save (Ctrl-Enter)"><i class='icon-floppy-1'/></a>
+          </div>
+          <textarea class='input' rows=15><%%=body%></textarea>
+        </div>
+        <div class='view'>
+          <div class='btn-side'>
+            <a href="#" class='action-edit' title="Edit body (doubleclick)"><i class='icon-pencil'/></a>
+          </div>
+          <%%=body%>
+          </div>
+        </div>
+      </div>
+    </script>
+
+    <script id='idea-inline-tags-template' type='text/template'>
+      <div class="block-tags <%%=App.me.can('admin', author_key) ? 'edit-block':'view-block'%>">
+        <div class='edit'>
+          <div class='btn-side'>
+            <a href="#" class='action-save' title="Save (Ctrl-Enter)"><i class='icon-floppy-1'/></a>
+            <a href="#" class='action-cancel' title="Cancel (Esc)"><i class='icon-cancel-1'/></a>
+          </div>
+          <i class='icon-tags' />
+          Теги: <input class='input' value="<%%=tags%>"/>
+        </div>
+        <div class='view'>
+          <div class='btn-side'>
+            <a href="#" class='action-edit' title="Edit tags (doubleclick)"><i class='icon-pencil'/></a>
+          </div>
+            <i class='icon-tags' />
+            Теги:
+            <%%=_(tags).map(function(tag) {return '<span class="tag">' + tag + "</span>";}).join(' ')%>
+          </div>
+        </div>
+      </div>
+    </script>
+
+    <script id='idea-inline-short-template' type='text/template'>
+      <div class="span8 block-short <%%=App.me.can('admin', author_key) ? 'edit-block':'view-block'%>">
+        <div class='edit'>
+          <div class='btn-side btn-side-vertical'>
+            <a href="#" class='action-cancel' title="Отменить (Esc)"><i class='icon-cancel-1'/></a>
+            <a href="#" class='action-save' title="Сохранить (Ctrl-Enter)"><i class='icon-floppy-1'/></a>
+          </div>
+          <textarea class='input' rows=5><%%=short%></textarea>
+        </div>
+        <div class='view'>
+          <div class='btn-side'>
+            <a href="#" class='action-edit' title="Изменить резюме (doubleclick)"><i class='icon-pencil'/></a>
+          </div>
+          <%%=short%>
+          </div>
+        </div>
+      </div>
+    </script>
+
+    <script id='idea-inline-goal-template' type='text/template'>
+      <div class="span8 block-goal <%%=App.me.can('admin', author_key) ? 'edit-block':'view-block'%>">
+        <div class='edit'>
+          <div class='btn-side'>
+            <a href="#" class='action-save' title="Save (Ctrl-Enter)"><i class='icon-floppy-1'/></a>
+            <a href="#" class='action-cancel' title="Cancel (Esc)"><i class='icon-cancel-1'/></a>
+          </div>
+          <div class='input-append'>
+            <input class='input span2 text-right' value="<%%=goal%>"></input>
+            <span class='add-on'>руб.</input>
+          </div>
+        </div>
+        <div class='view'>
+          <div class='btn-side'>
+            <a href="#" class='action-edit' title="Edit goal (doubleclick)"><i class='icon-pencil'/></a>
+          </div>
+          <div class="progress progress-striped pull-left span4">
+            <div class="bar" style="width: <%%=readiness%>%"></div>
+          </div>
+          <h4> <%%=cache%>р. из <%%=goal%>р.</h4>
+        </div>
+      </div>
+    </script>
+
+    <script id='idea-view-attachments-template' type='text/template'>
+      <div class="row">
+      <div class="span2">
+        <h4 class='text-right'>Вложения</h4>
+      </div>
+      <div class="span8">
+        <ul class="thumbnails">
+          <li class="span2">
+            <div class="thumbnail">
+            <img src="http://lorempixel.com/output/people-q-c-640-480-10.jpg" alt="Demo">
+            somefile.png <div class="mute">by help</div>
+          </li>
+          <li class="span2">
+            <div class="thumbnail">
+            <img src="http://lorempixel.com/output/nature-q-c-640-480-2.jpg" alt="Demo">
+            somefile.png <div class="mute">by help</div>
+          </li>
+          <li class="span2">
+            <div class="thumbnail">
+            <img src="http://lorempixel.com/output/technics-q-c-640-480-5.jpg" alt="Demo">
+            somefile.png <div class="mute">by help</div>
+          </li>
+        </ul>
+      </div>
+      </div>
+      <div class="spacer" />
+    </script>
+
+    <script id='idea-view-related-template' type='text/template'>
+      <div class="row" style="padding-top: 1em">
+      <div class="span2">
+        <h4 class='text-right'>Похожее</h4>
+      </div>
+      <div class="span8">
+        <ul class='unstyled'>
+          <li><a href="#idea/11">Idea #11 - Yet another idea</a>: published, +5, +12.5K</li>
+          <li><a href="#idea/14">Idea #14 - Yet another idea</a>: published, +1, +10K</li>
+          <li><a href="#idea/54">Idea #54 - Yet another idea</a>: published, +6, +43K</li>
+        </ul>
+      </div>
+      </div>
+      <div class="spacer" />
+    </script>
+
+    <script id='idea-checklist-template' type='text/template'>
+      <ul class='roadmap'>
+        <li class="nav-header">Чеклист</li>
+        <li class="status draft"
+            title="Черновики не показываются в поиске и в списках. Опубликуйте, как будете готовы."
+            data-sublist=1>Черновик</li>
+        <ul>
+          <li data-step="draft-subject" title='напишите суть своей идеи в одном предложении в теме'>тема идеи</li>
+          <li data-step="draft-body" title='исправьте все TODO! в тексте идеи'>текст идеи</li>
+          <li data-step="draft-tags" title='добавьте теги'>теги</li>
+          <li data-step="draft-short" title='исправьте все TODO! в резюме'>краткое резюме</li>
+          <li data-step="draft-goal" title='установите цель для сбора средств или отключите её в параметрах'>установить цель</li>
+          <!-- <li data-step="draft-settings" title='просмотрите и поправьте остальные параметры'>настройки</li> -->
+          <li data-step="draft-vote" title='хорошим началом будет, если вы сами проголосуете за идею'>проголосовать</li>
+          <%% if(App.me.can('admin', author_key)) { %>
+            <li><a data-action="publish" href="#"><i class="icon-publish" /> опубликовать</a></li>
+          <%% } %>
+        </ul>
+        <li class="status published"
+            title="Откртая идея доступная для голосования"
+            data-sublist=1>Сбор голосов</li>
+        <ul>
+          <li data-step="published-got25">25% обещано</li>
+          <li data-step="published-got50">50% обещано</li>
+          <li data-step="published-got75">75% обещано</li>
+          <li data-step="published-got90">90% обещано</li>
+          <li data-step="published-got100">100% обещано</li>
+        </ul>
+        <li class="status ready"
+            title="Идея теоретически набирает нужную сумму и готова для реализации"
+            data-sublist=1>Голоса собраны</li>
+        <ul>
+          <li>создать проект</li>
+          <li>реализовать</li>
+        </ul>
+        <li class="status closed"
+            title="Идея реализована или признана не целесообразной"
+            >Закрыта</li>
+        <ul>
+          <%% if(App.me.can('admin', author_key)) { %>
+            <%% if(status === 'closed') { %>
+              <li><a data-action="open" href="#"><i class="icon-lock-open"/>открыть</a></li>
+            <%% } else if (status === 'published') { %>
+              <li><a data-action="close" href="#"><i class="icon-lock"/>закрыть</a></li>
+            <%% } %>
+            <%% if(status !== 'removed') { %>
+               <li><a data-action="remove" class="text-error" href="#"><i class="icon-trash"/>удалить</a></li>
+            <%% } %>
+          <%% } %>
+        </ul>
+        <%% if (status === 'removed') { %>
+          <li class="status removed"
+              title="Идея удалена"
+              >Удалена</li>
+            <ul>
+              <%% if(App.me.can('admin', author_key)) { %>
+                <li><a data-action="recover" href="#"><i class="icon-trash"/>восстановить</a></li>
+              <%% } %>
+            </ul>
+         <%% } %>
+        <ul>
+      </ul>
+    </script>
+
+
+
+    <script id='vote-list-template' type='text/template'>
+      <div class='span10 list'>
+      </div>
+    </script>
+
+    <script id='vote-list-item-template' type='text/template'>
+      <div class='span10'>
+        +1, +<%%=cache%>р. от +<%%=user_nick%>, 10 марта, 10:24
+      </div>
+    </script>
+
+    <script id='vote-edit-template' type='text/template'>
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        Поддержать идею '<%%=idea.subject%>'
+      </div>
+      <div class="modal-body">
+        <form class="form-horizontal">
+          <fieldset>
+            <div class="control-group">
+              <label class="control-label">Планируемая сумма</label>
+              <div class="controls">
+                <div class='input-append'>
+                  <input class="text-right span2" type="text" name="cache" value="<%%=cache%>" />
+                  <div class='add-on'>руб.</div>
+                </div>
+              </div>
+            </div>
+            <label>Критические условия, без которых идея для вас бесполезна:</label>
+            <textarea class="span6" name="body" rows=3><%%=body%></textarea>
+            <div class='row'>
+            </div>
+          </fieldset>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class='btn-save btn btn-primary'>Сохранить</button>
+        <button class='btn-cancel btn'>Отмена</button>
+        <button class='btn-danger btn pull-left'>Отозвать</button>
+      </div>
+    </script>
+
+    <script id='template-admin-template' type='text/template'>
+      <%%  App.eventsHub.trigger('domchange:title', 'Шаблоны - Админка'); %>
+      <div class='row'>
+        <div class='span3' id='list'>
+          <div class='btn-group'>
+            <button class="btn">Проекты</button>
+            <button class="btn btn-create"><i class='icon-plus'/></button>
+            <button class="btn btn-remove"><i class='icon-trash'/></button>
+          </div>
+          <div class='spacer'></div>
+        </div>
+        <div class='span7' id='edit'>
+        </div>
+        <div class='span2' id='side'>
+        </div>
+      </div>
+    </script>
+
+
+    <script id='template-listitem-template' type='text/template'>
+      <li class='<%%= _selected ? "active" : ""%>'>
+        <a href="#admin/templates/<%%= id %>" data-template="<%%= id %>"><%%= name %></a>
+      </li>
+    </script>
+
+    <script id='template-listcategory-template' type='text/template'>
+      <li class='nav-header'><%%= category %></li>
+    </script>
+
+    <script id='template-sideinfo-template' type='text/template'>
+      <li class='nav-header'>Информация</li>
+      <li><span class='prop'>Автор:</span> <%%= author_nick %></li>
+      <li><span class='prop'>Создан:</span> <%%= humanTime(created_at) %></li>
+      <li><span class='prop'>Изменён:</span> <%%= humanTime(updated_at) %></li>
+    </script>
+
+    <script id='template-edit-template' type='text/template'>
+      <%%  App.eventsHub.trigger('domchange:title', category + '::' + name + ' - Шаблоны - Админка'); %>
+      <form>
+        <fieldset>
+          <legend>Общее</legend>
+          <label>Название шаблона</label>
+          <input type="text" name="name" placeholder="Введите название ..." value="<%%= name %>">
+          <label>Группа</label>
+          <input type="text" name="category" placeholder="Введите группу ..." value="<%%= category %>">
+          <label>Описание шаблона</label>
+          <textarea class="span7" name="description" rows=5><%%= description %></textarea>
+        </fieldset>
+        <fieldset>
+          <legend>Шаблон идеи</legend>
+          <label>Название идеи</label>
+          <input class='span7' type="text" name="subject" placeholder="Введите название ..." value="<%%= subject %>">
+          <label>Текст идеи</label>
+          <textarea class="span7" name="body" rows=10><%%= body %></textarea>
+          <label>Резюме</label>
+          <textarea class="span7" name="short" rows=3><%%= short %></textarea>
+        </fieldset>
+        <hr>
+        <div class='row text-right'>
+          <button class='btn-save btn btn-primary'>Сохранить</button>
+          <button class='btn-cancel btn'>Отмена</button>
+        </div>
+      </form>
+    </script>
+
+    <script id='doc-template' type='text/template'>
+      <div class='row'>
+        <div class='span8' id='doc-text'>
+          <%%=text%>
+        </div>
+        <div class='span4' id='doc-sidebar'>
+          <div class='row well sidebar-nav'>
+            <ul class='nav nav-list'>
+              <li class='nav-header'>Content</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </script>
+
+    <script id='confirm-publish-template' type='text/template'>
+      <strong class='text-info'>Опубликовать?</strong>
+      <p>
+        Помните, это операция без возврата.
+        После публикации все изменения будут попадать в лог,
+        вернуть обратно в черновики не получится.
+      </p>
+    </script>
+
+    <script id='confirm-purge-template' type='text/template'>
+      <strong class='text-error'>Удалить полностью?</strong>
+      <p class='text-error'>
+        Удаление черновика, это </strong>навсегда</strong> и окончательно.
+        Убедитесь, что там нет важных данных.
+      </p>
+    </script>
+
+    <script id='confirm-remove-template' type='text/template'>
+      <strong class='text-warning'>Удалить?</strong>
+      <p>
+        Вы отмечаете идею как удалённую. Она пропадёт из поиска, из статистики, но останется в вашей корзине. Вы сможете восстановить её позже, если нужно.
+      </p>
+    </script>
+
+    <script id='confirm-close-template' type='text/template'>
+      <strong class='text-warning'>Закрыть?</strong>
+      <p>
+        Вы отмечаете идею как закрытую. Голоса больше приниматься не будут, комментарии будут закрыты.
+      </p>
+    </script>
+
+    <script id='under-constriction-template' type='text/template'>
+      <%%  App.eventsHub.trigger('domchange:title', 'Скоро будет'); %>
+
+      <div class='text-center' style="margin: 3em">
+        <h1><%%= title %></h1>
+        <img  src="/img/under-construction-big.gif"/>
+      </div>
+    </script>
+
+    <!--
+    **********************
+    * 3party scripts
+    **********************
+    -->
+    <script src='/3party/jquery/js/jquery.js' type='text/javascript'></script>
+    <script src='/3party/underscore/js/underscore.js' type='text/javascript'></script>
+    <script src='/3party/bootstrap/js/bootstrap.js' type='text/javascript'></script>
+    <script src='/3party/backbone/js/backbone.js' type='text/javascript'></script>
+    <script src='/3party/bootbox/js/bootbox.js' type='text/javascript'></script>
+
+
+    <!--
+    **********************
+    * Application code
+    **********************
+    -->
+    <script src='/js/app.js' type='text/javascript'></script>
+    <script src='/js/app/models/current_user.js' type='text/javascript'></script>
+    <script src='/js/app/models/tag.js' type='text/javascript'></script>
+    <script src='/js/app/models/idea.js' type='text/javascript'></script>
+    <script src='/js/app/models/template.js' type='text/javascript'></script>
+    <script src='/js/app/models/vote.js' type='text/javascript'></script>
+
+    <script src='/js/app/views/helpers.js' type='text/javascript'></script>
+    <script src='/js/app/views/docviewer.js' type='text/javascript'></script>
+    <script src='/js/app/views/infobox.js' type='text/javascript'></script>
+    <script src='/js/app/views/navbar.js' type='text/javascript'></script>
+    <script src='/js/app/views/filter.js' type='text/javascript'></script>
+    <script src='/js/app/views/tag_views.js' type='text/javascript'></script>
+    <script src='/js/app/views/template_views.js' type='text/javascript'></script>
+    <script src='/js/app/views/idea_views.js' type='text/javascript'></script>
+    <script src='/js/app/views/vote_views.js' type='text/javascript'></script>
+
+    <script src='/js/app/router.js' type='text/javascript'></script>
+    <script src='/js/app/analytics.js' type='text/javascript'></script>
+
+    <!--
+    ******************************************
+    * Data for current_user initialization
+    ******************************************
+    -->
+    <script type='text/javascript'>
+      App.currrentUserDefaults = JSON.parse('<%= @current_user.attributes.to_json %>');
+    </script>
+
+    <!-- Piwik -->
+    <script type="text/javascript">
+    var pkBaseURL = (("https:" == document.location.protocol) ? "https://piwik.amuza.ru/" : "http://piwik.amuza.ru/");
+    document.write(unescape("%3Cscript src='" + pkBaseURL + "piwik.js' type='text/javascript'%3E%3C/script%3E"));
+    </script><script type="text/javascript">
+    try {
+    var piwikTracker = Piwik.getTracker(pkBaseURL + "piwik.php", 3);
+      // piwikTracker.trackPageView();
+      piwikTracker.enableLinkTracking();
+    } catch( err ) {}
+    </script><noscript><p><img src="http://piwik.amuza.ru/piwik.php?idsite=3" style="border:0" alt="" /></p></noscript>
+    <!-- End Piwik Tracking Code -->
+
+  </body>
+</html>

@@ -1,0 +1,120 @@
+GIT
+  remote: git://github.com/seancribbs/riak-sessions.git
+  revision: 6b4950dc3d611bd6bb3cc87a9242878513bc9774
+  ref: 6b4950dc3d611bd6bb3cc87a9242878513bc9774
+  specs:
+    riak-sessions (1.0.0.beta)
+      rack (>= 1.0)
+      riak-client (~> 1.0.0)
+
+GIT
+  remote: https://github.com/basho/ripple.git
+  revision: 4a5018bcd1bfd5d8653ca876e2c689ec3f853e1c
+  ref: 4a5018bcd1bfd5d8653ca876e2c689ec3f853e1c
+  specs:
+    ripple (1.0.0.beta2)
+      activemodel (>= 3.0.0, < 3.3.0)
+      activesupport (>= 3.0.0, < 3.3.0)
+      riak-client (~> 1.0.0)
+      tzinfo
+
+GEM
+  remote: http://rubygems.org/
+  specs:
+    activemodel (3.2.9)
+      activesupport (= 3.2.9)
+      builder (~> 3.0.0)
+    activesupport (3.2.9)
+      i18n (~> 0.6)
+      multi_json (~> 1.0)
+    autotest-standalone (4.5.11)
+    backports (2.6.5)
+    beefcake (0.3.7)
+    binding_of_caller (0.6.8)
+    builder (3.0.4)
+    coderay (1.0.8)
+    diff-lcs (1.1.3)
+    eventmachine (1.0.0)
+    ffi (1.2.0)
+    i18n (0.6.1)
+    json (1.7.5)
+    listen (0.6.0)
+    method_source (0.8.1)
+    multi_json (1.5.0)
+    nokogiri (1.5.5)
+    pry (0.9.10)
+      coderay (~> 1.0.5)
+      method_source (~> 0.8)
+      slop (~> 3.3.1)
+    pry-doc (0.4.4)
+      pry (>= 0.9.9.6)
+      yard (~> 0.8.1)
+    pry-nav (0.2.2)
+      pry (~> 0.9.10)
+    pry-stack_explorer (0.4.7)
+      binding_of_caller (~> 0.6.8)
+    rack (1.4.1)
+    rack-cache (1.2)
+      rack (>= 0.4)
+    rack-protection (1.3.2)
+      rack
+    rack-test (0.6.2)
+      rack (>= 1.0)
+    rb-inotify (0.8.8)
+      ffi (>= 0.5.0)
+    rerun (0.7.1)
+      listen
+    riak-client (1.0.5)
+      beefcake (~> 0.3.7)
+      builder (>= 2.1.2)
+      i18n (>= 0.4.0)
+      multi_json (~> 1.0)
+    rspec (2.12.0)
+      rspec-core (~> 2.12.0)
+      rspec-expectations (~> 2.12.0)
+      rspec-mocks (~> 2.12.0)
+    rspec-core (2.12.1)
+    rspec-expectations (2.12.0)
+      diff-lcs (~> 1.1.3)
+    rspec-mocks (2.12.0)
+    sanitize (2.0.3)
+      nokogiri (>= 1.4.4, < 1.6)
+      nokogiri (>= 1.4.4, < 1.6)
+    sinatra (1.3.3)
+      rack (~> 1.3, >= 1.3.6)
+      rack-protection (~> 1.2)
+      tilt (~> 1.3, >= 1.3.3)
+    sinatra-contrib (1.3.2)
+      backports (>= 2.0)
+      eventmachine
+      rack-protection
+      rack-test
+      sinatra (~> 1.3.0)
+      tilt (~> 1.3)
+    slop (3.3.3)
+    tilt (1.3.3)
+    tzinfo (0.3.35)
+    yard (0.8.3)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  autotest-standalone (~> 4.5.11)
+  json (~> 1.7.5)
+  pry (~> 0.9.10)
+  pry-doc (~> 0.4.4)
+  pry-nav (~> 0.2.2)
+  pry-stack_explorer (~> 0.4.7)
+  rack (~> 1.4.1)
+  rack-cache (~> 1.2)
+  rb-inotify (~> 0.8.8)
+  rerun (~> 0.7.1)
+  riak-client (~> 1.0.0)
+  riak-sessions!
+  ripple!
+  rspec (~> 2.12.0)
+  rspec-core (~> 2.12.1)
+  sanitize (~> 2.0.3)
+  sinatra (~> 1.3.3)
+  sinatra-contrib (~> 1.3.2)
