@@ -49,6 +49,7 @@ App.viewHelpers = {
 
 };
 
+App.loadingTemplate = _.template('<div class="muted text-center">Loading...</div>');
 
 App.eventsHub = _.extend({}, Backbone.Events);
 

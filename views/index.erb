@@ -543,11 +543,49 @@
       </ul>
     </script>
 
+    <script id='idea-wizard-templateitem-template' type='text/template'>
+      <li>
+        <b><%%= name %></b> - <%%= description %>
+        <br/><button class='btn btn-primary btn-small' data-template='<%%= id %>'>Создать</button>
+        <div class="spacer"></div>
+      </li>
+    </script>
+
+    <script id='idea-wizard-categorytab-template' type='text/template'>
+      <li class='<%%= active ? "active" : "" %>'>
+        <a href="#page<%%= pageId %>" data-toggle='tab'><%%= name %></a>
+      </li>
+    </script>
+
+    <script id='idea-wizard-categorypage-template' type='text/template'>
+      <div class="tab-pane <%%= active ? 'active' : '' %>" id="page<%%= pageId %>">
+        <ul class='unstyled template-wizard-list'></ul>
+      </div>
+    </script>
+
+
+    <script id='idea-wizard-template' type='text/template'>
+      <%%  App.eventsHub.trigger('domchange:title', 'Добавить идею'); %>
+      <div class="row">
+        <div class="span8 offset2">
+          <h3>Выберите шаблон для идеи</h3>
+          <div class="tabbable tabs-left">
+            <ul class='nav nav-tabs'></ul>
+            <div class="tab-content"></div>
+          </div>
+          <hr>
+          <div class="pull-right">
+            <button class="btn btn-create">Создать без шаблона</button>
+            <button class="btn btn-cancel">Отмена</button>
+          </div>
+        </div>
+      </div>
+    </script>
 
 
     <script id='vote-list-template' type='text/template'>
-      <div class='span10 list'>
-      </div>
+      <div class="row" id="list"></div>
+      <div class="row" id="description"></div>
     </script>
 
     <script id='vote-list-item-template' type='text/template'>

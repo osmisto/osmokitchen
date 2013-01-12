@@ -94,10 +94,15 @@ class OSApp < Sinatra::Application
            :tags => Idea.extract_tags(collection)})
   end
 
+  get '/ideas/templates' do
+    templates = Template.ordered_query(:removed => 0, :order_by => :category)
+    json templates.map {|template| template.attributes.to_hash}
+  end
+
   # Create new Idea
   post '/ideas' do
     @current_user.can!('member')
-    idea = Idea.create_new(@current_user)
+    idea = Idea.create_new(@current_user, @data)
     json idea.attributes.to_hash
   end
 

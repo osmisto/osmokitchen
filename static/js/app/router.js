@@ -37,13 +37,8 @@ App.Router = Backbone.Router.extend({
 	},
 
 	createIdea: function() {
-		var newIdea = new App.Idea();
-		newIdea.save({}, {
-			success: function(idea) {
-				App.infobox.showSuccess("New idea <strong>draft</strong> has been successfully created. Edit it and publish when you are ready.");
-				App.router.navigate("ideas/" + idea.get('id') + "/edit", {trigger: true});
-			}
-		});
+		this.cleanupCurrent();
+		this.current = new App.IdeaWizard();
 	},
 
 	viewIdea: function(id) {

@@ -140,6 +140,7 @@ class Idea
     # Apply template
     template = values.delete(:template)
     if template
+      template = Template.find(template);
       [:body, :short, :tags, :subject].each do |prop|
         if template[prop]
           idea.update_attribute(prop, template[prop])

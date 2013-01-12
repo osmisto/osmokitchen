@@ -49,10 +49,10 @@ App.IdeasList = Backbone.View.extend({
 		App.currentUser.on('change', this.render, this);
 		this.collection.on('reset', this.render, this);
 		this.collection.fetch();
-		$('#content').append(this.el);
+		$('#content').html(this.el);
 		this.filter = new App.IdeasFilter(this.collection);
 		this.tagFilter = new App.TagFilter(this.collection);
-		this.render();
+		this.$el.html(App.loadingTemplate());
 	},
 
 	render: function() {
@@ -395,7 +395,7 @@ App.IdeaView = Backbone.View.extend({
 		}
 
 		App.currentUser.on('switch', this.render, this);
-		$('#content').append(this.el);
+		$('#content').html(this.el);
 		this.model.fetch({
 			success: function() {
 				self.render();
@@ -418,5 +418,83 @@ App.IdeaView = Backbone.View.extend({
 
 		this.delegateEvents();
 		return this;
+	}
+});
+
+App.IdeaWizard = Backbone.View.extend({
+	tagName: 'div',
+	className: 'container',
+
+	template: _.template($('#idea-wizard-template').html()),
+	tabTemplate: _.template($('#idea-wizard-categorytab-template').html()),
+	pageTemplate: _.template($('#idea-wizard-categorypage-template').html()),
+	itemTemplate: _.template($('#idea-wizard-templateitem-template').html()),
+
+	events: {
+		'click .btn-cancel': 'cancel',
+		'click .btn-create': 'create',
+		'click [data-template]': 'useTemplate'
+	},
+
+	initialize: function() {
+		this.templates = new App.Templates({type: 'idea'});
+		this.templates.fetch();
+		this.listenTo(this.templates, 'reset', this.render, this);
+		$('#content').html(this.el);
+		this.$el.html(App.loadingTemplate());
+	},
+
+	render: function() {
+		var self = this;
+		this.$el.html(this.template());
+		var $tabs = this.$('ul.nav-tabs');
+		var $pages = this.$('.tab-content');
+
+		var pageId = 1;
+		var byCategory = this.templates.byCategory();
+		_(byCategory).each(function(list, category) {
+			var categoryDict = {
+				active: pageId === 1,
+				pageId: pageId ++,
+				name: category
+			};
+			$tabs.append(self.tabTemplate(categoryDict));
+
+			var $page = $(self.pageTemplate(categoryDict));
+			$pages.append($page);
+
+			_.chain(list).sortBy(function(item) {
+				return item.get('name');
+			}).each(function(template) {
+				$page.find('.template-wizard-list').append(self.itemTemplate(template.toJSON()));
+			});
+		});
+		this.delegateEvents();
+	},
+
+	genericCreate: function(template) {
+		var newIdea = new App.Idea();
+		newIdea.save({template: template}, {
+			success: function(idea) {
+				App.infobox.showSuccess("New idea <strong>draft</strong> has been successfully created. Edit it and publish when you are ready.");
+				App.router.navigate("ideas/" + idea.get('id') + "/edit", {trigger: true});
+			}
+		});
+	},
+
+
+	cancel: function() {
+		Backbone.history.navigate('#ideas', {trigger: true});
+		return false;
+	},
+
+	useTemplate: function(e) {
+		this.genericCreate($(e.currentTarget).attr('data-template'));
+		return false;
+	},
+
+	create: function() {
+		this.genericCreate();
+		return false;
 	}
 });
