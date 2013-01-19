@@ -2,8 +2,11 @@ require 'spec_helper'
 
 describe "Template#logged_update", :integration => true do
 
-  before :each do
+  before :all do
     @user = User.create_new('test_nick')
+  end
+
+  before :each do
     @template = Template.create_new(:idea, @user)
     @template.logged_update(@user, {
         :body => 'another one',

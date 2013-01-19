@@ -1,14 +1,15 @@
 
 App.CurrentUserVotes = Backbone.Collection.extend({
 	url: '/current_user/votes',
+	loading: false,
+
+	initialize: function() {
+		App.me.on('switch', this.reload, this);
+	},
 
 	reload: function() {
-		var self = this;
-		self.fetch({
-			success: function() {
-				self.trigger('change');
-			}
-		});
+		this.loading = true;
+		this.fetch();
 	},
 
 	getVote: function(idea) {
@@ -31,10 +32,6 @@ App.CurrentUser = Backbone.Model.extend({
 		root: 1000
 	},
 
-	initialize: function() {
-		this.on('all', function() {console.log(arguments);}, this);
-	},
-
 	can: function(role, author) {
 		var my_role = this.get('role');
 		if (this.get('id') === author) return true;
@@ -42,9 +39,9 @@ App.CurrentUser = Backbone.Model.extend({
 		return this.weights[role] <= this.weights[my_role];
 	},
 
-	login: function(userId) {
+	login: function(options) {
 		var self = this;
-		this.save({id: userId}, {
+		this.save({nick: options.nick}, {
 			success: function(model, response) {
 				self.trigger('switch login sync', model, response);
 			}

@@ -53,8 +53,9 @@ App.NavBar = Backbone.View.extend({
 	},
 
 	doLogin: function() {
-		var userId = $('#user-nick', this.$el).val();
-		App.currentUser.login('osmostarter_' + userId);
+		App.currentUser.login({
+			nick: $('#user-nick', this.$el).val()
+		});
 		return false;
 	},
 

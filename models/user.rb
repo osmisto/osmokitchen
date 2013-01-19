@@ -1,4 +1,5 @@
 require 'json'
+require 'digest/md5'
 
 class User
   ROLES = {
@@ -12,13 +13,19 @@ class User
 
   include Ripple::Document
 
-  property :id, String, :index => true
+  before_update :validate_duplication
+  before_create :validate_duplication
+  before_save :update_hash
+
+  property :id, String
+  key_on :id
+  timestamps!
+
   property :nick, String, :index => true
   property :provider, String, :index => true
   property :email, String
+  property :hash, String
   property :role, String, :default => 'member', :index => true
-  timestamps!
-  key_on :id
 
   #
   # Authorization helpers
@@ -37,6 +44,24 @@ class User
   end
 
   #
+  # Validators
+  #
+  def validate_duplication
+    if User.query({:nick => self.nick}).select {|user| user.id != self.id }.any?
+      raise "User with same nick already exists"
+    end
+  end
+
+  def update_hash
+    self.hash = if self.email
+      Digest::MD5.hexdigest(self.email.strip.downcase)
+    else
+      "0" * 32
+    end
+  end
+
+
+  #
   # Class methods
   #
   def self.get_guest
@@ -44,7 +69,7 @@ class User
     return user if user
 
     user = User.new({
-      :id => "osmostarter_guest",
+      :id => "9",
       :role => "none",
       :nick => "guest",
       :provider => "osmostarter"
@@ -53,11 +78,14 @@ class User
     user
   end
 
-  def self.create_new(id, options = {})
-    provider, nick = id.split('_', 2)
+  def self.create_new(auth_key, options = {})
+    provider, nick = auth_key.split('_', 2)
     raise ArgumentError.new("pass id in <provider>_<nick> form") if nick.nil?
+
+
+
     user = User.new(options.merge(
-      :id => id,
+      :id => Counter.get_next(self),
       :nick => nick,
       :provider => provider
     ));

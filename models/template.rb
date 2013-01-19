@@ -4,9 +4,9 @@ class Template
   before_validation :sanitize_name
   before_validation :set_unique_name
 
-  property :id, Integer
-  timestamps!
+  property :id, String
   key_on :id
+  timestamps!
 
   property :type, String, :index => true
   property :name, String, :default => 'Template', :presence => true
@@ -14,10 +14,12 @@ class Template
   property :category, String, :default => 'Other'
   property :removed, Boolean, :default => false
 
-  property :author_key, String, :index => true
-  property :author_nick, String
-
+  # Author, and cached data
+  property :author_key, String, :presence => true, :index => true
+  property :author_nick, String, :presence => true
+  property :author_hash, String, :presence => true
   one :author, :using => :stored_key, :class_name => "User"
+
   many :changelog, :class_name => "ChangeEntry"
 
   def unique_name
@@ -66,6 +68,7 @@ class Template
       :id => Counter.get_next(self),
       :author_key => author.id,
       :author_nick => author.nick,
+      :author_hash => author[:hash],
       :type => type.to_s
     })
     template.safe_update(values)
@@ -95,7 +98,7 @@ class IdeaTemplate <Template
     new_tags = self.tags - self.tags_was
     obsolete_tags = self.tags_was - self.tags
 
-    new_tags.each {|tag| Tag.increment(tag, :tempaltes)}
+    new_tags.each {|tag| Tag.increment(tag, :templates)}
     obsolete_tags.each {|tag| Tag.decrement(tag, :templates)}
   end
 end

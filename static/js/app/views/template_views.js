@@ -24,7 +24,7 @@ App.TemplatesAdmin = Backbone.View.extend({
 			this.list.once('select', this.create, this);
 		}
 
-		$('#content').html(this.el);
+		$('#content').html(this.le);
 	},
 
 	render: function() {
@@ -109,19 +109,16 @@ App.TemplateNavList = Backbone.View.extend({
 	},
 
 	render: function() {
-		var byCategory = {};
 		var self = this;
 		self.$el.empty();
 
-		this.collection.each(function(item) {
-			var category = item.get('category');
-			byCategory[category] = byCategory[category] || [];
-			byCategory[category].push(item);
-		});
-
+		var byCategory = this.collection.byCategory();
 		_(byCategory).each(function(list, category) {
 			self.$el.append(self.categoryTemplate({category: category}));
-			_(list).each(function(item) {
+
+			_.chain(list).sortBy(function(item) {
+				return item.get('name');
+			}).each(function(item) {
 				var data = item.toJSON();
 				data._selected = self.current == data.id;
 				self.$el.append(self.itemTemplate(data));

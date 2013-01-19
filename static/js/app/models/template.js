@@ -30,5 +30,23 @@ App.Template = Backbone.Model.extend({
 
 App.Templates = Backbone.Collection.extend({
     model: App.Template,
-    url: '/templates'
+    type: undefined,
+
+    url: function() {
+        if (this.type)
+            return this.type + 's/templates';
+        else
+            return '/templates';
+    },
+
+    initialize: function(options) {
+        options = options || {};
+        this.type = options.type;
+    },
+
+    byCategory: function() {
+        return this.groupBy(function(item) {
+            return item.get('category');
+        });
+    }
 });

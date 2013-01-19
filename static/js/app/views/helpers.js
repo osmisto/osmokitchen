@@ -7,7 +7,7 @@ App.UnderConstruction = Backbone.View.extend({
 	initialize: function(options) {
 		options = options || {};
 		this.title = options.title;
-		$('#content').append(this.el);
+		$('#content').html(this.el);
 		this.render();
 	},
 

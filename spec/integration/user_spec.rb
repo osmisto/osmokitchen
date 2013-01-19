@@ -10,7 +10,6 @@ describe "User::ClassMethods", :integration => true do
 
   it "should create new good user on demand" do
     user = User.create_new('test_nick')
-    user.id.should be == 'test_nick'
     user.nick.should be == 'nick'
     user.provider.should be == 'test'
     user.role.should be == 'member'
@@ -23,6 +22,13 @@ describe "User::ClassMethods", :integration => true do
   it "should not create a user with unparsable id" do
     expect { User.create_new('test')}.to raise_error(ArgumentError)
   end
+
+  it "should not allow to create user with same nick" do
+    User.list.each {|u| u.destroy}
+    user = User.create_new('test_nick')
+    expect { User.create_new('another_nick') }.to raise_error(RuntimeError)
+  end
+
 end
 
 describe "Guest user", :integration => true do

@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe "Idea::ClassMethods", :integration => true do
-  before do
+  before :all do
     @user = User.create_new('test_nick')
   end
 

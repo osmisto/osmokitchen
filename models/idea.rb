@@ -15,8 +15,8 @@ class Idea
   validate :validate_content
 
   property :id, String
-  timestamps!
   key_on :id
+  timestamps!
 
   # Own properties
   property :status, String, :default => 'draft', :index => true
@@ -35,9 +35,10 @@ class Idea
   property :readiness, Float, :default => 0
 
   # Author, and cached data
-  one :author, :class_name => "User"
-  property :author_nick, String
-  property :author_key, String, :index => true
+  property :author_key, String, :presence => true, :index => true
+  property :author_nick, String, :presence => true
+  property :author_hash, String, :presence => true
+  one :author, :using => :stored_key, :class_name => "User"
 
   # Changelog
   many :changelog, :class_name => "ChangeEntry"
@@ -134,12 +135,14 @@ class Idea
       :id => Counter.get_next(self),
       :author => author,
       :author_key => author.id,
-      :author_nick => author.nick
+      :author_nick => author.nick,
+      :author_hash => author[:hash]
     })
 
     # Apply template
-    template = values.delete(:template)
-    if template
+    template_key = values.delete(:template_key)
+    if template_key
+      template = Template.find(template_key);
       [:body, :short, :tags, :subject].each do |prop|
         if template[prop]
           idea.update_attribute(prop, template[prop])

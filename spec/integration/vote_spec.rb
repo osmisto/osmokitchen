@@ -8,15 +8,17 @@ describe "Vote::ClassMethods", :integration => true do
 
   it "should create new vote with good arguments" do
     vote = Vote.create_new(@user, @idea)
-    vote.user_key.should be == @user.id
+    vote.author_key.should be == @user.id
+    vote.author_nick.should be == @user.nick
+    vote.author_hash.should be == @user.hash
     vote.idea_key.should be == @idea.id
     vote.cache.should be == 0
     vote.destroy
   end
 
   it "should create new vote with ids instead of objects" do
-    vote = Vote.create_new(@user.id, @idea.id)
-    vote.user_key.should be == @user.id
+    vote = Vote.create_new(@user, @idea)
+    vote.author_key.should be == @user.id
     vote.idea_key.should be == @idea.id
     vote.destroy
   end
@@ -32,6 +34,7 @@ describe "Vote::ClassMethods", :integration => true do
   end
 
   it "should not allow to create duplicated vote" do
+    Vote.list.each {|vote| vote.destroy} # to be sure no votes exists
     vote = Vote.create_new(@user, @idea);
     expect {Vote.create_new(@user, @idea)}.to raise_error(RuntimeError)
   end
