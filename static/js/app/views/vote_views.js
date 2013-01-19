@@ -54,9 +54,11 @@ App.VoteNew = Backbone.View.extend({
 	},
 
 	create: function() {
-		var vote = new App.Vote(),
-			editView = new App.VoteEdit({model: vote});
+		var vote = new App.Vote();
 		vote.set('idea_key', this.parent.idea.get('id'));
+		vote.set('body', this.parent.idea.get('vote_template'));
+
+		var editView = new App.VoteEdit({model: vote});
 		this.listenTo(editView, 'save', this.afterSave, this);
 		this.$('.edit-form').html(editView.el);
 		this.$el.addClass('editing');

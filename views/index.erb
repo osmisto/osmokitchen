@@ -316,14 +316,36 @@
           <div class='row row-comments'>
             <div class='span10'>
               <ul class='nav nav-tabs'>
-                <li><a href="#comments" data-toggle="tab"><i class="icon-chat" /> Отзывы (<%%=comments%>)</a></li>
                 <li class="active">
-                  <a href="#votes" data-toggle="tab"><i class="icon-money" /> Голоса (+<%%=votes%>, +<%%=short_cache%>)</a>
+                  <a href="#comments" data-toggle="tab"><i class="icon-chat" />
+                    Отзывы (<%%=comments%>)
+                  </a>
                 </li>
+                <li>
+                  <a href="#votes" data-toggle="tab"><i class="icon-money" />
+                    Голоса (+<%%=votes%>, +<%%=short_cache%>)
+                  </a>
+                </li>
+                <%% if(App.me.can('admin', author_key)) { %>
+                <li>
+                  <a href="#settings" data-toggle="tab"><i class="icon-cog" />Настройки </a>
+                </li>
+                <%% } %>
               </ul>
               <div class="tab-content">
-                <div class="tab-pane" id="comments">1</div>
-                <div class="tab-pane active" id="votes">2</div>
+                <div class="tab-pane active" id="comments">loading ...</div>
+                <div class="tab-pane" id="votes">loading ...</div>
+
+                <%% if (App.currentUser.can('admin', author_key)) { %>
+                <div class="tab-pane" id="settings">
+                  <div class='row row-vote-template'>
+                    <div class="span2">
+                      <h4 class='text-right'>Шаблон голоса</h4>
+                    </div>
+                  </div>
+                  <div class="spacer"/>
+                </div>
+                <%% } %>
               </div>
             </div>
           </div>
@@ -432,6 +454,25 @@
             <div class="bar" style="width: <%%=readiness%>%"></div>
           </div>
           <h4> <%%=cache%>р. из <%%=goal%>р.</h4>
+        </div>
+      </div>
+    </script>
+
+    <script id='idea-inline-vote-template-template' type='text/template'>
+      <div class="span8 block-body edit-block">
+        <div class='edit'>
+          <div class='btn-side btn-side-vertical'>
+            <a href="#" class='action-cancel' title="Cancel (Esc)"><i class='icon-cancel-1'/></a>
+            <a href="#" class='action-save' title="Save (Ctrl-Enter)"><i class='icon-floppy-1'/></a>
+          </div>
+          <textarea class='input' rows=5><%%=vote_template%></textarea>
+        </div>
+        <div class='view'>
+          <div class='btn-side'>
+            <a href="#" class='action-edit' title="Edit body (doubleclick)"><i class='icon-pencil'/></a>
+          </div>
+          <%%=vote_template%>
+          </div>
         </div>
       </div>
     </script>

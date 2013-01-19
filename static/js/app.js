@@ -47,7 +47,6 @@ App.viewHelpers = {
 
     formatTime: function(format, date) {
         var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        console.log(date);
         return format.replace('dd', date.getDate())
                 .replace('mm', months[date.getMonth()])
                 .replace('yyyy', date.getFullYear());

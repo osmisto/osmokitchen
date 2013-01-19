@@ -173,3 +173,7 @@ img.avatar-medium {width: 40px; height: 40px; box-shadow: 2px 2px 5px #aaa;}
 .confirm-bar {padding: 0.5em;}
 .confirm-bar div {height: 23px;}
 .confirm-bar .question {padding-top: 3px; }
+
+.tab-content {overflow: visible;}
+
+.roadmap li {cursor: pointer;}

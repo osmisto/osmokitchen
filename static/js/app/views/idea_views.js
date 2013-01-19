@@ -28,7 +28,8 @@ App.IdeasListItem = Backbone.View.extend({
 
 	addVote: function() {
 		var vote = new App.Vote();
-		vote.set('idea_key', this.model.id);
+		vote.set('idea_key', this.model.get('id'));
+		vote.set('body', this.model.get('vote_template'));
 		App.currentUserVotes.add(vote);
 		new App.VoteEditModal(vote, this.model).show();
 		return false;
@@ -180,7 +181,12 @@ App.IdeaCheckList = Backbone.View.extend({
 			done: false
 		},
 		'[data-step="draft-vote"]': {
-			done: function() { return this.model.get('votes') > 0; }
+			done: function() { return this.model.get('votes') > 0; },
+			click: function(e) {
+				e.data.self.parent.openTab('votes');
+				e.data.self.parent.voteslist.$('.action-create').click();
+				e.data.self.parent.voteslist.$('input').focus();
+			}
 		},
 		'.published': {
 			active: function() {
@@ -379,6 +385,10 @@ App.IdeaView = Backbone.View.extend({
 		'goal': new App.InlineEditor({
 			template: _.template($('#idea-inline-goal-template').html()),
 			property: 'goal'
+		}),
+		'vote-template': new App.InlineEditor({
+			template: _.template($('#idea-inline-vote-template-template').html()),
+			property: 'vote_template'
 		})
 	},
 
@@ -386,6 +396,7 @@ App.IdeaView = Backbone.View.extend({
 	initialize: function(options) {
 		var self = this;
 		this.model = options.model;
+		this.routeTail = options.route;
 
 		// Setup checklist
 		this.checklist = new App.IdeaCheckList({
@@ -412,6 +423,7 @@ App.IdeaView = Backbone.View.extend({
 		this.model.fetch({
 			success: function() {
 				self.render();
+				self.route();
 			}
 		});
 		this.voteslist.collection.fetch(); // TODO: fetch on tab open
@@ -436,6 +448,23 @@ App.IdeaView = Backbone.View.extend({
 
 		this.delegateEvents();
 		return this;
+	},
+
+	route: function() {
+		var self = this;
+		if (this.routeTail === undefined) return;
+
+		if (['votes', 'settings', 'comments'].indexOf(this.routeTail) !== -1) {
+			this.openTab(this.routeTail);
+		} else if (this.routeTail === 'edit') {
+			_(['subject', 'body', 'tags', 'short', 'goal']).each(function(key) {
+				self.inlineEditors[key].edit();
+			});
+		}
+	},
+
+	openTab: function(name) {
+		this.$('a[href="#' + name + '"]').tab('show');
 	}
 });
 

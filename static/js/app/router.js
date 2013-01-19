@@ -7,7 +7,7 @@ App.Router = Backbone.Router.extend({
 		"ideas" : "listIdeas",
 		"ideas/new" : "createIdea",
 		"ideas/:id" : "viewIdea",
-		"ideas/:id/edit" : "viewIdea",
+		"ideas/:id/*parts" : "viewIdea",
 		"projects": "listProjects",
 		"doc/:topic": "showDoc",
 		"search/:querty": "doSearch",
@@ -41,9 +41,12 @@ App.Router = Backbone.Router.extend({
 		this.current = new App.IdeaWizard();
 	},
 
-	viewIdea: function(id) {
+	viewIdea: function(id, parts) {
 		this.cleanupCurrent();
-		this.current = new App.IdeaView({model: new App.Idea({id: id})});
+		this.current = new App.IdeaView({
+			model: new App.Idea({id: id}),
+			route: parts
+		});
 	},
 
 	editIdea: function(id) {

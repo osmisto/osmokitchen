@@ -25,7 +25,8 @@ class Idea
   property :body, String, :default => '<em>TODO: write idea body</em>'
   property :tags, Array, :default => []
   property :goal, Integer, :default => 0
-  are_safe :status, :subject, :short, :body, :tags, :goal
+  property :vote_template, String, :default => ''
+  are_safe :status, :subject, :short, :body, :tags, :goal, :vote_template
 
   # Cached counters
   property :votes, Integer, :default => 0
