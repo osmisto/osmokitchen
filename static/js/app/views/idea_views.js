@@ -46,7 +46,7 @@ App.IdeasList = Backbone.View.extend({
 	template: _.template($('#ideas-list-template').html()),
 
 	initialize: function() {
-		App.currentUser.on('change', this.render, this);
+		App.currentUser.on('change reset', this.render, this);
 		this.collection.on('reset', this.render, this);
 		this.collection.fetch();
 		$('#content').html(this.el);
@@ -386,21 +386,38 @@ App.IdeaView = Backbone.View.extend({
 	initialize: function(options) {
 		var self = this;
 		this.model = options.model;
+
+		// Setup checklist
 		this.checklist = new App.IdeaCheckList({
 			model: this.model,
 			parent: this
 		});
+
+		// Setup voteslist
+		this.voteslist = new App.VoteList({
+			collection: new App.IdeaVotes({idea: this.model}),
+			idea: this.model
+		});
+
+		// Setup inline editors
 		for (var idx in this.inlineEditors) {
 			this.inlineEditors[idx].setModel(this.model);
 		}
 
-		App.currentUser.on('switch', this.render, this);
+		// Setup main view
+		this.$el.html(App.loadingTemplate());
 		$('#content').html(this.el);
+
+		// Fetch all data
 		this.model.fetch({
 			success: function() {
 				self.render();
 			}
 		});
+		this.voteslist.collection.fetch(); // TODO: fetch on tab open
+
+		// Event handlers
+		App.currentUser.on('switch', this.render, this);
 	},
 
 	render: function() {
@@ -415,6 +432,7 @@ App.IdeaView = Backbone.View.extend({
 			this.inlineEditors[idx].setModel(this.model);
 		}
 		this.$('.sidebar').append(this.checklist.$el);
+		this.$('#votes').html(this.voteslist.$el);
 
 		this.delegateEvents();
 		return this;

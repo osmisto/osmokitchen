@@ -1,13 +1,12 @@
 require 'spec_helper'
 
 describe "Template::ClassMethods", :integration => true do
-  before do
+  before :all do
     @user = User.create_new('test_nick')
   end
 
   it "should create normal default idea" do
     idea_template = Template.create_new(:idea, @user)
-    idea_template.id.should be > 0
     idea_template.type.should be == 'idea'
     idea_template.author_key.should be == @user.id
     idea_template.author_nick.should be == @user.nick
@@ -58,7 +57,7 @@ end
 
 
 describe "IdeaTemplate::ClassMethods", :integration => true do
-  before do
+  before :all do
     @user = User.create_new('test_nick')
   end
 

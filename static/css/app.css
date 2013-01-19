@@ -73,6 +73,8 @@ html, body {height: 100%;}
 .view-block .edit { display: none; }
 .view-block .view { display: block; }
 .view-block .btn-side { display: none;}
+.view-block .btn-action { display: none;}
+
 
 
 .btn-side {
@@ -155,3 +157,19 @@ html, body {height: 100%;}
 
 .template-removed { text-decoration: line-through; }
 .template-removed a { color: gray; }
+
+.vote-list-item {margin-bottom: 2em;}
+.vote-list-item h3 {margin-top: 15px;}
+.vote-list-item.zero h3 {color: lightgray;}
+.vote-list-item.ok h3 {color: skyblue;}
+.vote-list-item.good h3 {color: darkgreen;}
+.vote-list-item.big h3 {color: darkgoldenrod;}
+.vote-my {background: antiqueWhite;}
+.vote-list-item .edit-form {margin-top: 1em;}
+
+img.avatar-medium {width: 40px; height: 40px; box-shadow: 2px 2px 5px #aaa;}
+
+.clickover .popover-title {display: none;}
+.confirm-bar {padding: 0.5em;}
+.confirm-bar div {height: 23px;}
+.confirm-bar .question {padding-top: 3px; }

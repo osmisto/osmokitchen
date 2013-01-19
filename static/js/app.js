@@ -17,6 +17,8 @@ App.viewHelpers = {
             short = diff.days + ' дня назад';
         } else if (diff.days == 1) {
             short = 'вчера';
+        } else if (diff.hours > 0) {
+            short = diff.hours + ' ч. назад';
         } else if (diff.minutes > 0) {
             short = diff.minutes + ' м. назад';
         } else if (diff.seconds > 5) {
@@ -44,7 +46,18 @@ App.viewHelpers = {
     },
 
     formatTime: function(format, date) {
-        return '123';
+        var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        console.log(date);
+        return format.replace('dd', date.getDate())
+                .replace('mm', months[date.getMonth()])
+                .replace('yyyy', date.getFullYear());
+    },
+
+    howMuch: function(cache) {
+        if (cache === 0) return 'zero';
+        if (cache < 100) return 'ok';
+        if (cache < 1000) return 'good';
+        return 'big';
     }
 
 };
@@ -56,6 +69,42 @@ App.eventsHub = _.extend({}, Backbone.Events);
 App.eventsHub.on('domchange:title', function(title) {
     $(document).attr('title', title + ' - OsmoKitchen');
 }, this);
+
+App.tools = {};
+App.tools.confirmPopover = function($el, options) {
+    var $tempover = $('<div/>'),
+        template = _.template($('#basic-confirm-template').html());
+
+    // Default options
+    options = _.extend({
+        placement: 'right',
+        icon: 'ok',
+        type: 'primary'
+    }, options);
+
+    // position tempover ontop of $el
+    $el.after($tempover);
+    $tempover.css({position: 'absolute', zIndex: 5000});
+    $tempover.offset($el.offset());
+    $tempover.width($el.width());
+    $tempover.height($el.height());
+
+    // Init clickover object
+    $tempover.clickover({
+        placement: options.placement,
+        'class': 'clickover-confirm',
+        content: template(options),
+        html: true,
+        onHidden: function() {
+            console.log('hidding ... ');
+            $tempover.remove();
+        }
+    });
+    $tempover.click();
+    $tempover.data('clickover').tip().find('.btn-ok').click(function() {
+        if (options.success) options.success();
+    });
+};
 
 
 $(function() {

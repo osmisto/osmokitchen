@@ -12,8 +12,8 @@ describe "Difference::ClassMethods", :integration => true do
     @idea.comments = 100
     diff = Difference.create_new(@idea)
 
-    diff.original[:bucket].should be == @idea.robject.bucket.name
-    diff.original[:key].should be == @idea.robject.key
+    diff.current[:bucket].should be == @idea.robject.bucket.name
+    diff.current[:key].should be == @idea.robject.key
 
     diff.old[:body].should be == '<em>TODO: write idea body</em>'
     diff.old[:tags].should be == []

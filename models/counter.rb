@@ -3,9 +3,10 @@ class Counter
   include Ripple::Document
 
   property :id, String
-  property :value, Integer, :default => 0
-  timestamps!
   key_on :id
+  timestamps!
+
+  property :value, Integer, :default => 10
 
   #
   # Class methods

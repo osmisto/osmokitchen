@@ -2,6 +2,7 @@
 require 'sinatra'
 require 'sinatra/base'
 require 'sinatra/json'
+require 'sinatra/multi_route'
 require 'logger'
 require_relative 'lib/sinatra_hacks'
 require 'json'
@@ -53,13 +54,13 @@ class OSApp < Sinatra::Application
   # is != null -> Login handler
   put '/current_user' do
     new_user = false;
-    @current_user = User.find(@data[:id])
+    @current_user = User.query({:nick => @data[:nick]}).first
     if @current_user.nil?
-      @current_user = User.create_new(@data[:id])
+      @current_user = User.create_new('osmostarter_' + @data[:nick])
       new_user = true;
     end
 
-    session['current_user'] = @data[:id]
+    session['current_user'] = @current_user.id
     json @current_user.attributes.to_hash.update({:new_user => new_user})
   end
 
@@ -126,36 +127,37 @@ class OSApp < Sinatra::Application
 
 
   get '/current_user/votes' do
-    votes = Vote.query({:user_key => @current_user.id})
+    votes = Vote.query({:author_key => @current_user.id})
     json votes.map {|vote| vote.attributes.to_hash}
   end
 
   # New vote
-  post '/votes' do
+  post '/votes', '/current_user/votes' do
     @current_user.can!('member')
-    vote = Vote.create_new(@current_user, @data[:idea_key], @data)
+    idea = Idea.find!(@data[:idea_key])
+    vote = Vote.create_new(@current_user, idea, @data)
     json vote.attributes.to_hash
   end
 
   # Read vote
-  get '/votes/:id' do
+  get '/votes/:id', '/current_user/votes/:id' do
     vote = Vote.find(params[:id])
     json vote.attributes.to_hash
   end
 
   # Update vote
-  put '/votes/:id' do
+  put '/votes/:id', '/current_user/votes/:id' do
     vote = Vote.find!(params[:id])
-    @current_user.can!('root', vote.user[:id])
+    @current_user.can!('root', vote.author_key)
     puts @data.inspect
     vote.safe_update(@data)
     vote.save
     json vote.attributes.to_hash
   end
 
-  delete '/votes/:id' do
+  delete '/votes/:id', '/current_user/votes/:id' do
     vote = Vote.find!(params[:id])
-    @current_user.can!('root', vote.user[:id])
+    @current_user.can!('root', vote.author_key)
     vote.destroy
   end
 

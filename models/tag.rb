@@ -15,11 +15,12 @@ class Tag
   include Ripple::Document
 
   property :id, String
+  key_on :id
+  timestamps!
+
   property :category, String, :index => true, :default => 'other'
   one :uses, :class => TagUsage
   property :aliases, Array
-  timestamps!
-  key_on :id
 
   index :alias, String do
     Set.new([self.id] + (self.aliases || []))

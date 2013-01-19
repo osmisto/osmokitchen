@@ -12,7 +12,7 @@ describe "Idea::ClassMethods", :integration => true do
   end
 
   it "should create idea with template" do
-    idea = Idea.create_new(@user, {:template => @template})
+    idea = Idea.create_new(@user, {:template_key => @template.id})
     idea.body.should be == 'tempalte body'
     idea.subject.should be == 'template subject'
     idea.short.should be == 'template short'

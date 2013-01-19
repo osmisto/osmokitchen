@@ -6,6 +6,14 @@ describe Idea do
     @draft    = Idea.new({:id => 2, :body => 'abody', :status => 'draft'})
     @closed   = Idea.new({:id => 3, :body => 'abody', :status => 'closed'})
     @removed  = Idea.new({:id => 4, :body => 'abody', :status => 'removed'})
+
+    [@idea, @draft, @closed, @removed].each do |item|
+      item.attributes = {
+        :author_key => 1,
+        :author_nick => 'test',
+        :author_hash => '0'
+      }
+    end
   end
 
   it "should safely update with unknown and RO attributes" do
@@ -63,7 +71,7 @@ describe Idea do
 
   it "should strip HTML tags in subject" do
     @idea.safe_update({ :subject => 'The <strong>heavy</strong> topic'})
-    @idea.save!
+    @idea.valid?.should be == true
     @idea.subject.should be == 'The heavy topic'
   end
 
@@ -74,7 +82,7 @@ describe Idea do
       :body => bad,
       :short => bad
     })
-    @idea.save!
+    @idea.valid?.should be == true
     @idea.body.should be == good
     @idea.short.should be == good
   end

@@ -43,7 +43,8 @@ App.Idea = Backbone.Model.extend({
 
 			if (cache >= limit) continue;
 			var str =  (cache / (limit / 1000)).toPrecision(3);
-			str = str.replace(/0+$/, '').replace(/\.$/, '');
+			if (str.indexOf('.') !== -1)
+				str = str.replace(/0+$/, '').replace(/\.$/, '');
 			return str + suffix;
 		}
 		return "BOOM!";
